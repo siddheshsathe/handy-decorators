@@ -5,5 +5,6 @@ setup(
     version='0.0.1',
     description='Handy decorators for day-to-day use!',
     py_modules=['decorators'],
-    package_dir={'': 'src'}
+    package_dir={'': 'src'},
+    install_requires=['logging'],
 )
