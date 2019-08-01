@@ -1,6 +1,0 @@
-setup.py
-src/decorators.py
-src/handy_decorators.egg-info/PKG-INFO
-src/handy_decorators.egg-info/SOURCES.txt
-src/handy_decorators.egg-info/dependency_links.txt
-src/handy_decorators.egg-info/top_level.txt

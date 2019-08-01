@@ -1,5 +1,7 @@
+from _version import __version__
 import logging
 import functools
+
 def trycatch(func):
     """
     Handy decorator for putting try-except block for a function
