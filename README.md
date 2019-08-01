@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/siddheshsathe/handy-decorators.svg?branch=master)](https://travis-ci.org/siddheshsathe/handy-decorators)
+---
 # Handy Decorators
 ---
 This is a set of `handy decorators` which one can use for their day-to-day life coding.
