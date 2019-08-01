@@ -12,10 +12,10 @@ def trycatch(func):
         >>> @trycatch
         ... def func():
         ...     print(0/0) # Division by 0 must raise exception
-        ... 
+        ...
         >>> func()
         Exception occurred: [integer division or modulo by zero]
-        >>>        
+        >>>
     """
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -38,12 +38,11 @@ def timer(func):
         ...     import time
         ...     print('Hi')
         ...     time.sleep(1)
-        ... 
+        ...
         >>> a()
         Hi
         Time taken by the function is [1.00103902817] sec
         >>>
-        
     """
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -60,28 +59,35 @@ def singleton(cls):
     Description:
         - Decorate your class with this decorator
         - If you happen to create another instance of the same class, it will return the previously created one
+        - Supports creation of multiple instances of same class with different args/kwargs
         - Works for multiple classes
     Use:
         >>> from decorators import singleton
+        >>>
         >>> @singleton
         ... class A:
-        ...     pass
-        ... 
-        >>> a = A()
-        >>> b = A()
-        >>> a is b
+        ...     def __init__(self, *args, **kwargs):
+        ...         pass
+        ...
+        >>>
+        >>> a = A(name='Siddhesh')
+        >>> b = A(name='Siddhesh', lname='Sathe')
+        >>> c = A(name='Siddhesh', lname='Sathe')
+        >>> a is b  # has to be different
+        False
+        >>> b is c  # has to be same
         True
-        >>> a
-        <__main__.A instance at 0x7ff4f6c4b4d0>
-        >>> b
-        <__main__.A instance at 0x7ff4f6c4b4d0>
         >>>
     """
     previous_instances = {}
     @functools.wraps(cls)
     def wrapper(*args, **kwargs):
-        if cls not in previous_instances:
-            previous_instances[cls] = cls(*args, **kwargs)
-        return previous_instances[cls]
+        if cls in previous_instances and previous_instances.get(cls, None).get('args') == (args, kwargs):
+            return previous_instances[cls].get('instance')
+        else:
+            previous_instances[cls] = {
+                'args': (args, kwargs),
+                'instance': cls(*args, **kwargs)
+            }
+            return previous_instances[cls].get('instance')
     return wrapper
-
