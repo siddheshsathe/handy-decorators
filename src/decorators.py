@@ -1,4 +1,4 @@
-from _version import __version__
+from src._version import __version__
 import logging
 import functools
 
