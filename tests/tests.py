@@ -9,7 +9,7 @@ class TestValgrindParser(object):
             return a[2]  # Index error
 
         func()
-    
+
     def test_timer_decorator(self):
         from src.decorators import timer
         @timer
@@ -28,5 +28,5 @@ class TestValgrindParser(object):
         obj1 = A(name='Siddhesh')
         obj2 = A(name='Siddhesh', lname='Sathe')
         obj3 = A(name='Siddhesh', lname='Sathe')
-        assert not obj1 is obj2, "Created objects must be different"
+        assert obj1 is not obj2, "Created objects must be different"
         assert obj2 is obj3, "Created objects must be same"
