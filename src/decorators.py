@@ -1,6 +1,7 @@
-from src._version import __version__
 import logging
 import functools
+
+__version__ = "0.0.7"
 
 def trycatch(func):
     """
