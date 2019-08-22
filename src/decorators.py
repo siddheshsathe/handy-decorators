@@ -94,3 +94,61 @@ def singleton(cls):
             }
             return previous_instances[cls].get('instance')
     return wrapper
+
+def run_in_thread(func):
+    """
+    Handy decorator for running a function in thread.
+    Description:
+        - Using standard threading.Thread for creating thread
+        - Can pass args and kwargs to the function
+        - Will start a thread but will give no control over it
+    Use:
+        >>> from decorators import run_in_thread
+        >>> @run_in_thread
+        ... def display(name, *args, **kwargs):
+        ...     for i in range(5):
+        ...             print('Printing {} from thread'.format(name))
+        ...
+        >>> display('Siddhesh')
+        Printing ('Siddhesh',) from thread
+        Thread started for function <function display at 0x7f1d60f7cb90>
+        Printing ('Siddhesh',) from thread
+        Printing ('Siddhesh',) from thread
+        Printing ('Siddhesh',) from thread
+        Printing ('Siddhesh',) from thread
+        >>>
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        import threading
+        threading.Thread(target=func, args=(args, kwargs)).start()
+        logging.info('Thread started for function {}'.format(func))
+    return wrapper
+
+def create_n_threads(thread_count=1):
+    """
+    Handy decorator for creating multiple threads of a single function
+    Description:
+        - Using standard threading.Thread for thread creation
+        - Can pass args and kwargs to the function
+        - Will start number of threads based on the count specified while decorating
+    Use:
+        >>> from decorators import create_n_threads
+        >>> @create_n_threads(thread_count=2)
+        ... def p(*args, **kwargs):
+        ...     pass
+        ...
+        >>> p()
+        Thread started for function <function p at 0x7f6725ecccf8>
+        Thread started for function <function p at 0x7f6725ecccf8>
+        >>>
+    """
+    def wrapper(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            import threading
+            for i in range(thread_count):
+                threading.Thread(target=func, args=(args, kwargs)).start()
+                logging.info('Thread started for function {}'.format(func))
+        return wrapper
+    return wrapper
