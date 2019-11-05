@@ -67,5 +67,43 @@ False
 True
 >>>
 ```
+
+### create_n_threads
+This decorator launches the function/method call in number of threads mentioned.
+
+```python
+>>> from decorators import create_n_threads
+>>> @create_n_threads(thread_count=2)
+... def p(*args, **kwargs):
+...     pass
+...
+>>> p()
+Thread started for function <function p at 0x7f6725ecccf8>
+Thread started for function <function p at 0x7f6725ecccf8>
+>>>
+```
+
+### run_in_thread
+This decorator launches the function/method call in a separate thread.
+* Using standard threading.Thread for creating thread
+* Can pass args and kwargs to the function
+* Will start a thread but will give no control over it
+```
+>>> from decorators import run_in_thread
+>>> @run_in_thread
+... def display(name, *args, **kwargs):
+...     for i in range(5):
+...             print('Printing {} from thread'.format(name))
+...
+>>> display('Siddhesh')
+Printing ('Siddhesh',) from thread
+Thread started for function <function display at 0x7f1d60f7cb90>
+Printing ('Siddhesh',) from thread
+Printing ('Siddhesh',) from thread
+Printing ('Siddhesh',) from thread
+Printing ('Siddhesh',) from thread
+>>>
+```
+
 ---
 Please create an issue if more decorators are needed.
