@@ -1,8 +1,10 @@
 import io
 import re
+import time
 import pytest
 import typing
 import logging
+import threading
 import contextlib
 
 
@@ -57,20 +59,58 @@ class TestValgrindParser(object):
         assert obj1 is not obj2, "Created objects must be different"
         assert obj2 is obj3, "Created objects must be same"
 
-    def test_run_in_thread(self) -> None:
+    def test_run_in_thread(self, caplog: pytest.LogCaptureFixture) -> None:
         from src.decorators import run_in_thread
 
         @run_in_thread
-        def display(*args, **kwargs) -> None:
-            pass
+        def display_1(*args, **kwargs) -> None:
+            time.sleep(1)
 
-        display()
+        with caplog.at_level(logging.INFO):
+            display_1()
 
-    def test_create_n_thread(self) -> None:
+        pattern = re.compile(r"Thread started for function <.+>")
+        thread_pattern = re.compile(r"Thread-\d+ \(display_1\)")
+
+        assert len(caplog.records) == 1, "A single message must be logged"
+        for record in caplog.records:
+            assert pattern.match(
+                record.message
+            ), "A message with the function must be logged"
+
+        assert (
+            sum(
+                1
+                for thread in threading.enumerate()
+                if thread_pattern.match(thread.name)
+            )
+            == 1
+        ), "A single thread must be created"
+
+    def test_create_n_thread(self, caplog: pytest.LogCaptureFixture) -> None:
         from src.decorators import create_n_threads
 
         @create_n_threads(thread_count=2)
-        def display(*args, **kwargs) -> None:
-            pass
+        def display_2(*args, **kwargs) -> None:
+            time.sleep(1)
 
-        display()
+        with caplog.at_level(logging.INFO):
+            display_2()
+
+        pattern = re.compile(r"Thread started for function <.+>")
+        thread_pattern = re.compile(r"Thread-(\d+) \(display_2\)")
+
+        assert len(caplog.records) == 2, "Exactly two messages must be logged"
+        for i, record in enumerate(caplog.records):
+            assert pattern.match(
+                record.message
+            ), f"A message with the function must be logged at position {i}"
+
+        assert (
+            sum(
+                1
+                for thread in threading.enumerate()
+                if thread_pattern.match(thread.name)
+            )
+            == 2
+        ), "Exactly two threads must be created"
