@@ -1,9 +1,15 @@
 import logging
 import functools
+import typing
 
+# TODO Increase version number accordingly
 __version__ = "0.0.7"
 
-def trycatch(func):
+P = typing.ParamSpec('P')
+T = typing.TypeVar('T')
+
+
+def trycatch(func: typing.Callable[P, T]) -> typing.Callable[P, T | None]:
     """
     Handy decorator for putting try-except block for a function
     Description:
@@ -20,15 +26,21 @@ def trycatch(func):
         Exception occurred: [integer division or modulo by zero]
         >>>
     """
+
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T | None:
+        result: T | None
         try:
-            func(*args, **kwargs)
+            result = func(*args, **kwargs)
         except Exception as e:
             logging.exception('Exception occurred: [{}]'.format(e))
+            result = None
+        return result
+
     return wrapper
 
-def timer(func):
+
+def timer(func: typing.Callable[P, T]) -> typing.Callable[P, T]:
     """
     Handy decorator for printing the time required by a function to execute
     Description:
@@ -47,16 +59,30 @@ def timer(func):
         Time taken by the function is [1.00103902817] sec
         >>>
     """
+
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         from time import time
+
         start_time = time()
-        func(*args, **kwargs)
+        result = func(*args, **kwargs)
         end_time = time()
-        logging.info('Time taken by the function is [{time}] sec'.format(func=func, time=end_time-start_time))
+        logging.info(
+            'Time taken by the function is [{time}] sec'.format(
+                time=end_time - start_time
+            )
+        )
+        return result
+
     return wrapper
 
-def singleton(cls):
+
+class InstanceCache(typing.TypedDict, typing.Generic[T]):
+    args: tuple[P.args, P.kwargs]
+    instance: T
+
+
+def singleton(cls: typing.Callable[P, T]) -> typing.Callable[P, T]:
     """
     Handy decorator for creating a singleton class
     Description:
@@ -82,20 +108,25 @@ def singleton(cls):
         True
         >>>
     """
-    previous_instances = {}
+    previous_instances: dict[typing.Callable[P, T], InstanceCache[T]] = {}
+
     @functools.wraps(cls)
-    def wrapper(*args, **kwargs):
-        if cls in previous_instances and previous_instances.get(cls, None).get('args') == (args, kwargs):
-            return previous_instances[cls].get('instance')
-        else:
-            previous_instances[cls] = {
-                'args': (args, kwargs),
-                'instance': cls(*args, **kwargs)
-            }
-            return previous_instances[cls].get('instance')
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+        current_instance: InstanceCache[T] | None = previous_instances.get(cls)
+        if current_instance and current_instance['args'] == (args, kwargs):
+            return current_instance['instance']
+
+        instance: T = cls(*args, **kwargs)
+        previous_instances[cls] = {
+            'args': (args, kwargs),
+            'instance': instance,
+        }
+        return instance
+
     return wrapper
 
-def run_in_thread(func):
+
+def run_in_thread(func: typing.Callable[P, T]) -> typing.Callable[P, None]:
     """
     Handy decorator for running a function in thread.
     Description:
@@ -118,14 +149,20 @@ def run_in_thread(func):
         Printing ('Siddhesh',) from thread
         >>>
     """
+
     @functools.wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> None:
         import threading
+
         threading.Thread(target=func, args=(args, kwargs)).start()
         logging.info('Thread started for function {}'.format(func))
+
     return wrapper
 
-def create_n_threads(thread_count=1):
+
+def create_n_threads(
+    thread_count: int = 1,
+) -> typing.Callable[[typing.Callable[P, T]], typing.Callable[P, None]]:
     """
     Handy decorator for creating multiple threads of a single function
     Description:
@@ -143,12 +180,16 @@ def create_n_threads(thread_count=1):
         Thread started for function <function p at 0x7f6725ecccf8>
         >>>
     """
-    def wrapper(func):
+
+    def wrapper(func: typing.Callable[P, T]) -> typing.Callable[P, None]:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> None:
             import threading
+
             for i in range(thread_count):
                 threading.Thread(target=func, args=(args, kwargs)).start()
                 logging.info('Thread started for function {}'.format(func))
+
         return wrapper
+
     return wrapper
